@@ -20,8 +20,22 @@ if [ "$#" -eq 0 ]; then
     exit 2
 fi
 
-exec distrobox-host-exec env \
+distrobox-host-exec env \
     WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}" \
     DISPLAY="${DISPLAY:-:0}" \
     XDG_CURRENT_DESKTOP="${XDG_CURRENT_DESKTOP:-KDE}" \
     gio open "$@"
+rc=$?
+
+# Web links: raise the browser window (see share/raise-browser.sh). Files and
+# other schemes open in other apps, so leave focus alone for those.
+raise="$HOME/.local/share/host-browser/raise-browser.sh"
+case "$1" in
+    http://*|https://*)
+        if [ "$rc" -eq 0 ] && [ -x "$raise" ]; then
+            ( distrobox-host-exec "$raise" >/dev/null 2>&1 & )
+        fi
+        ;;
+esac
+
+exit "$rc"

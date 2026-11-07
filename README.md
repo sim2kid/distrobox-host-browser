@@ -25,11 +25,23 @@ Firefox as a Flatpak on the host).
 | `/etc/xdg/mimeapps.list` | Makes "Host Browser" the container's default for those types |
 | `x-www-browser` alternative | For tools that call `x-www-browser` / `sensible-browser` |
 
-Everything is under `/usr` and `/etc` **inside the container**. Nothing is
-written to the shared home directory, so the host's own `xdg-open` and
-default-browser settings are untouched. (Do not put these in `~/.local/bin` or
+Everything above is under `/usr` and `/etc` **inside the container**. The only
+thing written to the shared home directory is
+`~/.local/share/host-browser/raise-browser.sh`, which the host has to be able
+to run (see below). The host's own `xdg-open` and default-browser settings are
+untouched. (Do not put the wrapper in `~/.local/bin` or the defaults in
 `~/.config/mimeapps.list`: the home directory is shared with the host and the
 files would shadow the host's own.)
+
+## Bringing the browser to the front
+
+KDE's focus-stealing prevention leaves a window that was launched without an
+activation token behind other windows. After opening an `http(s)` link,
+`host-open` runs `share/raise-browser.sh` on the host, which asks KWin's
+windows runner (`org.kde.KWin /WindowsRunner`) to activate the browser's
+window. It waits up to ~9s so a cold-starting browser is raised once its window
+exists. Needs `busctl` and `jq` on the host. Set `HOST_BROWSER_MATCH` (a
+case-insensitive pattern, default `firefox`) if your browser is not Firefox.
 
 ## Install / uninstall
 

@@ -25,6 +25,7 @@ else
     sudo rm -f /usr/local/bin/xdg-open
 fi
 
+rm -rf "$HOME/.local/share/host-browser"
 sudo rm -rf "$state"
 sudo update-desktop-database /usr/share/applications 2>/dev/null || true
 

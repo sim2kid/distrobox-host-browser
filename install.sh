@@ -32,6 +32,11 @@ sudo install -Dm644 "$here/share/mimeapps.list" /etc/xdg/mimeapps.list
 
 sudo update-desktop-database /usr/share/applications 2>/dev/null || true
 
+# The one file that must be visible to the host: host-open runs it there via
+# distrobox-host-exec to raise the browser window. Home is shared, so it goes
+# in a directory of its own.
+install -Dm755 "$here/share/raise-browser.sh" "$HOME/.local/share/host-browser/raise-browser.sh"
+
 # For tools that look for x-www-browser / sensible-browser.
 sudo update-alternatives --install /usr/bin/x-www-browser x-www-browser /usr/local/bin/host-open 50 >/dev/null
 sudo update-alternatives --set x-www-browser /usr/local/bin/host-open >/dev/null
