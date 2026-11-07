@@ -68,9 +68,19 @@ xdg-open https://example.com                    # opens in the host browser
 ## Notes
 
 - `host-open` re-execs `/usr/bin/xdg-open` if it is run outside a container.
-- Electron (Claude Desktop) opens links through the XDG desktop portal
-  (`org.freedesktop.portal.OpenURI`), not `xdg-open`. This bridge fixes the
-  container's default-browser registration and `xdg-open`; it cannot make an
-  app call either if the app decides not to.
+- Electron apps such as Claude Desktop appear to open links through the XDG
+  desktop portal (`org.freedesktop.portal.OpenURI`) rather than `xdg-open`. In
+  testing, Claude Desktop sent its links to the in-app browser, or nowhere,
+  until the container had a registered default browser; after `install.sh`
+  they opened in the host browser. The cause was inferred from the app's
+  behavior, not confirmed in its source.
 - If your session type is not KDE/Wayland, adjust the `:-` defaults in
   `bin/host-open`.
+
+## AI disclosure
+
+This project was written by Claude (Anthropic's AI model, via Claude Code).
+
+## License
+
+[MIT](LICENSE): use, copy, modify and redistribute freely.
