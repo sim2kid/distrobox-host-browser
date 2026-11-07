@@ -1,0 +1,64 @@
+# distrobox-host-browser
+
+Open links from apps inside a Distrobox container in the **host's** default
+browser (written for Bazzite + an Ubuntu container running Claude Desktop, with
+Firefox as a Flatpak on the host).
+
+## The problem
+
+- A fresh container has no default web browser registered
+  (`xdg-mime query default x-scheme-handler/https` prints nothing), so apps
+  that check for one can fall back to an in-app browser or do nothing.
+- Distrobox's own `xdg-open` shim runs the host `xdg-open` with an empty
+  desktop environment (no `DISPLAY`, `WAYLAND_DISPLAY` or
+  `XDG_CURRENT_DESKTOP`). The host `xdg-open` then tries `lynx`/`w3m`/etc. and
+  fails with "no method available for opening".
+- Flatpak Firefox also needs the display variables to start.
+
+## What this installs (container only)
+
+| Path | Purpose |
+| --- | --- |
+| `/usr/local/bin/host-open` | Runs `gio open` on the host with the display variables set |
+| `/usr/local/bin/xdg-open` | Symlink to `host-open` (replaces Distrobox's shim) |
+| `/usr/share/applications/host-browser.desktop` | A "Host Browser" desktop entry for http/https/html |
+| `/etc/xdg/mimeapps.list` | Makes "Host Browser" the container's default for those types |
+| `x-www-browser` alternative | For tools that call `x-www-browser` / `sensible-browser` |
+
+Everything is under `/usr` and `/etc` **inside the container**. Nothing is
+written to the shared home directory, so the host's own `xdg-open` and
+default-browser settings are untouched. (Do not put these in `~/.local/bin` or
+`~/.config/mimeapps.list`: the home directory is shared with the host and the
+files would shadow the host's own.)
+
+## Install / uninstall
+
+Run inside the container (needs `sudo`):
+
+```sh
+sh install.sh
+sh uninstall.sh
+```
+
+`uninstall.sh` restores Distrobox's original `xdg-open` symlink and any
+previous `/etc/xdg/mimeapps.list`.
+
+After installing, fully quit and reopen apps so they re-check the default
+browser.
+
+## Check it works
+
+```sh
+xdg-mime query default x-scheme-handler/https   # host-browser.desktop
+xdg-open https://example.com                    # opens in the host browser
+```
+
+## Notes
+
+- `host-open` re-execs `/usr/bin/xdg-open` if it is run outside a container.
+- Electron (Claude Desktop) opens links through the XDG desktop portal
+  (`org.freedesktop.portal.OpenURI`), not `xdg-open`. This bridge fixes the
+  container's default-browser registration and `xdg-open`; it cannot make an
+  app call either if the app decides not to.
+- If your session type is not KDE/Wayland, adjust the `:-` defaults in
+  `bin/host-open`.

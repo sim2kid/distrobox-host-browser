@@ -1,0 +1,5 @@
+[Default Applications]
+x-scheme-handler/http=host-browser.desktop
+x-scheme-handler/https=host-browser.desktop
+text/html=host-browser.desktop
+application/xhtml+xml=host-browser.desktop

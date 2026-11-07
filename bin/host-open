@@ -1,0 +1,27 @@
+#!/bin/sh
+# host-open: hand a URL or file to the host's default handler from inside a
+# distrobox container. Installed as /usr/local/bin/host-open and
+# /usr/local/bin/xdg-open in the container only (see install.sh).
+#
+# distrobox-host-exec starts host commands with an empty desktop environment
+# (no DISPLAY / WAYLAND_DISPLAY / XDG_CURRENT_DESKTOP), which makes a plain
+# host xdg-open fall back to terminal browsers and fail. `gio open` with the
+# display variables passed through resolves the host's real default browser.
+
+# Safety net: this script lives in a home directory shared with the host. If it
+# is ever run outside a container, defer to the real xdg-open instead of
+# shadowing it.
+if [ ! -e /run/.containerenv ] && [ -z "${CONTAINER_ID:-}" ]; then
+    exec /usr/bin/xdg-open "$@"
+fi
+
+if [ "$#" -eq 0 ]; then
+    echo "usage: ${0##*/} URL|FILE..." >&2
+    exit 2
+fi
+
+exec distrobox-host-exec env \
+    WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}" \
+    DISPLAY="${DISPLAY:-:0}" \
+    XDG_CURRENT_DESKTOP="${XDG_CURRENT_DESKTOP:-KDE}" \
+    gio open "$@"
